@@ -1,0 +1,41 @@
+# Java build files
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE files
+/.idea/
+/*.iml
+*.ipr
+*.iws
+
+# Eclipse
+*.classpath
+*.project
+*.settings/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build directories
+/bin/
+/build/
+/out/
+
+# Maven
+/ARSW/Lab_busy_wait_vs_wait_notify/target
+
+# Gradle
+.gradle/
+/build/
+
+# Test reports
+/test-output/
