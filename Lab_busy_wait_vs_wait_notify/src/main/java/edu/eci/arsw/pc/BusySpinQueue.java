@@ -3,38 +3,33 @@ package edu.eci.arsw.pc;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-/** Intencionalmente incorrecta: usa busy-wait (alto CPU). */
+/** Correcta implementación con espera eficiente (no busy-wait). */
 public final class BusySpinQueue<T> {
-  private final Deque<T> q = new ArrayDeque<>();
-  private final int capacity;
+    private final Deque<T> q = new ArrayDeque<>();
+    private final int capacity;
 
-  public BusySpinQueue(int capacity) {
-    this.capacity = capacity;
-  }
+    public BusySpinQueue(int capacity) {
+        this.capacity = capacity;
+    }
 
-  public void put(T item) {
-    // spin hasta que haya espacio
-    while (true) {
-      if (q.size() < capacity) {
+    public synchronized void put(T item) throws InterruptedException {
+        while (q.size() == capacity) {
+            wait(); // espera hasta que haya espacio
+        }
         q.addLast(item);
-        return;
-      }
-      // espera activa
-      Thread.onSpinWait();
+        notifyAll(); // despierta  hilos
     }
-  }
 
-  public T take() {
-    // spin hasta que haya elementos
-    while (true) {
-      T v = q.pollFirst();
-      if (v != null)
+    public synchronized T take() throws InterruptedException {
+        while (q.isEmpty()) {
+            wait(); // espera hasta que haya elementos
+        }
+        T v = q.pollFirst();
+        notifyAll(); // despierta hilos
         return v;
-      Thread.onSpinWait();
     }
-  }
 
-  public int size() {
-    return q.size();
-  }
+    public synchronized int size() {
+        return q.size();
+    }
 }

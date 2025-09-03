@@ -31,7 +31,7 @@ Thumbs.db
 /out/
 
 # Maven
-/target/
+/ARSW/Lab_busy_wait_vs_wait_notify/target
 
 # Gradle
 .gradle/
