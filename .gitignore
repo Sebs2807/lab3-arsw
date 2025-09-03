@@ -1,0 +1,23 @@
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Maven
+**/target/
+
+
+# Gradle
+.gradle/
+build/
+
+# Archivos de Java compilados
+*.class
+
+# Archivos temporales del sistema
+*.log
+*.DS_Store
+Thumbs.db
+
