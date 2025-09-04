@@ -1,12 +1,15 @@
 package edu.eci.arsw.immortals;
 
-import edu.eci.arsw.concurrency.PauseController;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+import edu.eci.arsw.concurrency.PauseController;
 
 public final class Immortal implements Runnable {
+  private final ReentrantLock lock = new ReentrantLock();
   private final String name;
   private int health;
   private final int damage;
@@ -25,7 +28,14 @@ public final class Immortal implements Runnable {
   }
 
   public String name() { return name; }
-  public synchronized int getHealth() { return health; }
+  public int getHealth() { 
+    lock.lock();
+    try {
+      return health;
+    } finally {
+      lock.unlock();
+    }
+  }
   public boolean isAlive() { return getHealth() > 0 && running; }
   public void stop() { running = false; }
 
@@ -68,8 +78,10 @@ public final class Immortal implements Runnable {
   }
 
   private void fightNaive(Immortal other) {
-    synchronized (this) {
-      synchronized (other) {
+    Immortal first = this.name.compareTo(other.name) < 0 ? this : other;
+    Immortal second = this.name.compareTo(other.name) < 0 ? other : this;
+    synchronized (first) {
+      synchronized (second) {
         if (this.health <= 0 || other.health <= 0) return;
         other.health = Math.max(0, other.health - this.damage);
         this.health += this.damage;
@@ -78,15 +90,37 @@ public final class Immortal implements Runnable {
     }
   }
 
+  
   private void fightOrdered(Immortal other) {
     Immortal first = this.name.compareTo(other.name) < 0 ? this : other;
     Immortal second = this.name.compareTo(other.name) < 0 ? other : this;
-    synchronized (first) {
-      synchronized (second) {
-        if (this.health <= 0 || other.health <= 0) return;
-        other.health = Math.max(0, other.health - this.damage);;
-        this.health += this.damage;
-        scoreBoard.recordFight();
+    boolean done = false;
+    int retries = 5;
+    while (!done && retries-- > 0) {
+      try {
+        if (first.lock.tryLock(10, TimeUnit.MILLISECONDS)) {
+          try {
+            if (second.lock.tryLock(10, TimeUnit.MILLISECONDS)) {
+              try {
+                if (this.health <= 0 || other.health <= 0) return;
+                other.health = Math.max(0, other.health - this.damage);
+                this.health += this.damage;
+                scoreBoard.recordFight();
+                done = true;
+              } finally {
+                second.lock.unlock();
+              }
+            }
+          } finally {
+            first.lock.unlock();
+          }
+        }
+        if (!done) {
+          Thread.sleep(2 + ThreadLocalRandom.current().nextInt(5)); // backoff
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
       }
     }
   }
