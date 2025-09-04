@@ -29,16 +29,27 @@ public final class Immortal implements Runnable {
   public boolean isAlive() { return getHealth() > 0 && running; }
   public void stop() { running = false; }
 
-  @Override public void run() {
+  @Override
+  public void run() {
     try {
       while (running) {
         controller.awaitIfPaused();
         if (!running) break;
+
+        if (getHealth() <= 0) {
+          synchronized (population) {
+            population.remove(this);
+          }
+          break;
+        }
+
         var opponent = pickOpponent();
         if (opponent == null) continue;
+
         String mode = System.getProperty("fight", "ordered");
         if ("naive".equalsIgnoreCase(mode)) fightNaive(opponent);
         else fightOrdered(opponent);
+
         Thread.sleep(2);
       }
     } catch (InterruptedException ie) {
@@ -46,21 +57,22 @@ public final class Immortal implements Runnable {
     }
   }
 
+
   private Immortal pickOpponent() {
     if (population.size() <= 1) return null;
     Immortal other;
     do {
-      other = population.get(ThreadLocalRandom.current().nextInt(population.size()));
-    } while (other == this);
-    return other;
+        other = population.get(ThreadLocalRandom.current().nextInt(population.size()));
+    } while (other == this || !other.isAlive());
+    return other.isAlive() ? other : null;
   }
 
   private void fightNaive(Immortal other) {
     synchronized (this) {
       synchronized (other) {
         if (this.health <= 0 || other.health <= 0) return;
-        other.health -= this.damage;
-        this.health += this.damage / 2;
+        other.health = Math.max(0, other.health - this.damage);
+        this.health += this.damage;
         scoreBoard.recordFight();
       }
     }
@@ -72,8 +84,8 @@ public final class Immortal implements Runnable {
     synchronized (first) {
       synchronized (second) {
         if (this.health <= 0 || other.health <= 0) return;
-        other.health -= this.damage;
-        this.health += this.damage / 2;
+        other.health = Math.max(0, other.health - this.damage);;
+        this.health += this.damage;
         scoreBoard.recordFight();
       }
     }
