@@ -33,7 +33,8 @@ public final class ImmortalManager implements AutoCloseable {
                 damage,
                 population,
                 scoreBoard,
-                controller
+                controller,
+                fightMode
             ));
         }
     }

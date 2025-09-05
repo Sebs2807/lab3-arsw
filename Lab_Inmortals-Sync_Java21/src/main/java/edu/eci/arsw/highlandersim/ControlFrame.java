@@ -18,7 +18,7 @@ public final class ControlFrame extends JFrame {
   private final JButton resumeBtn = new JButton("Resume");
   private final JButton stopBtn = new JButton("Stop");
 
-  private final JSpinner countSpinner = new JSpinner(new SpinnerNumberModel(8, 2, 5000, 1));
+  private final JSpinner countSpinner = new JSpinner(new SpinnerNumberModel(8, 2, 10000, 1));
   private final JSpinner healthSpinner = new JSpinner(new SpinnerNumberModel(100, 10, 10000, 10));
   private final JSpinner damageSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 1000, 1));
   private final JComboBox<String> fightMode = new JComboBox<>(new String[]{"ordered", "naive"});
