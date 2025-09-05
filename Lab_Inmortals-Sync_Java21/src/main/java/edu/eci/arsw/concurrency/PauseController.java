@@ -2,18 +2,20 @@ package edu.eci.arsw.concurrency;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.IntSupplier;
 
 public final class PauseController {
+
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition unpaused = lock.newCondition();
     private final Condition allPaused = lock.newCondition();
-    private volatile boolean paused = false;
 
+    private boolean paused = false;
     private int threadsPaused = 0;
-    private final int totalHilos;
+    private final IntSupplier liveThreadsSupplier;
 
-    public PauseController(int totalHilos) {
-        this.totalHilos = totalHilos;
+    public PauseController(IntSupplier liveThreadsSupplier) {
+        this.liveThreadsSupplier = liveThreadsSupplier;
     }
 
     public void pause() {
@@ -35,33 +37,32 @@ public final class PauseController {
         }
     }
 
-    public boolean paused() {
-        return paused;
+    public void awaitIfPaused() throws InterruptedException {
+        lock.lock();
+        boolean counted = false;
+        try {
+            while (paused) {
+                if (!counted) {
+                    threadsPaused++;
+                    counted = true;
+                    if (threadsPaused == liveThreadsSupplier.getAsInt()) {
+                        allPaused.signalAll();
+                    }
+                }
+                unpaused.await();
+            }
+        } finally {
+            if (counted) {
+                threadsPaused--;
+            }
+            lock.unlock();
+        }
     }
 
-	public void awaitIfPaused() throws InterruptedException {
-		lock.lockInterruptibly();
-		try {
-			while (paused) {
-				threadsPaused++;
-				if (threadsPaused == totalHilos) {
-					allPaused.signalAll();
-				}
-				try {
-					unpaused.await();
-				} finally {
-					threadsPaused--;
-				}
-			}
-		} finally {
-			lock.unlock();
-		}
-	}
-
     public void waitUntilAllPaused() throws InterruptedException {
-        lock.lockInterruptibly();
+        lock.lock();
         try {
-            while (threadsPaused < totalHilos) {
+            while (paused && threadsPaused < liveThreadsSupplier.getAsInt()) {
                 allPaused.await();
             }
         } finally {

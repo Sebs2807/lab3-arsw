@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public final class ControlFrame extends JFrame {
 
@@ -103,11 +104,40 @@ public final class ControlFrame extends JFrame {
   private void onStop(ActionEvent e) { safeStop(); }
 
   private void safeStop() {
-    if (manager != null) {
-      manager.stop();
-      manager = null;
+        if (manager != null) {
+            manager.pause();
+            try {
+                manager.controller().waitUntilAllPaused();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            manager.stop();
+            ExecutorService exec = getExecutorService(manager);
+            if (exec != null) {
+                exec.shutdown();
+                try {
+                    if (!exec.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                        exec.shutdownNow();
+                    }
+                } catch (InterruptedException ex) {
+                    exec.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            }
+            manager = null;
+            output.append("\nSimulación detenida.\n");
+        }
     }
-  }
+
+    private ExecutorService getExecutorService(ImmortalManager m) {
+        try {
+            var f = ImmortalManager.class.getDeclaredField("exec");
+            f.setAccessible(true);
+            return (ExecutorService) f.get(m);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
   public static void main(String[] args) {
     int count = Integer.getInteger("count", 8);
