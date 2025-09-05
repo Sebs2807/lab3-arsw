@@ -76,6 +76,11 @@ public final class ControlFrame extends JFrame {
   private void onPauseAndCheck(ActionEvent e) {
     if (manager == null) return;
     manager.pause();
+    try {
+        manager.controller().waitUntilAllPaused();
+    } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+    }
     List<Immortal> pop = manager.populationSnapshot();
     long sum = 0;
     StringBuilder sb = new StringBuilder();

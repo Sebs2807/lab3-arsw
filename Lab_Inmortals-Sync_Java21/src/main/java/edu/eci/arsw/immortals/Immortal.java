@@ -84,7 +84,7 @@ public final class Immortal implements Runnable {
       synchronized (second) {
         if (this.health <= 0 || other.health <= 0) return;
         other.health = Math.max(0, other.health - this.damage);
-        this.health += this.damage;
+        this.health += this.damage / 2;
         scoreBoard.recordFight();
       }
     }
@@ -104,7 +104,7 @@ public final class Immortal implements Runnable {
               try {
                 if (this.health <= 0 || other.health <= 0) return;
                 other.health = Math.max(0, other.health - this.damage);
-                this.health += this.damage;
+                this.health += this.damage / 2;
                 scoreBoard.recordFight();
                 done = true;
               } finally {

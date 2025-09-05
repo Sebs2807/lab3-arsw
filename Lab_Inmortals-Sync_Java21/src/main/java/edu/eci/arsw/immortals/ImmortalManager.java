@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 public final class ImmortalManager implements AutoCloseable {
   private final List<Immortal> population = new ArrayList<>();
   private final List<Future<?>> futures = new ArrayList<>();
-  private final PauseController controller = new PauseController();
+private final PauseController controller = new PauseController(population.size());
   private final ScoreBoard scoreBoard = new ScoreBoard();
   private ExecutorService exec;
 
