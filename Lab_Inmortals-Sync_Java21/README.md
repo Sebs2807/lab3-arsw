@@ -160,6 +160,10 @@ Incluye compilación y pruebas JUnit.
 
 ---
 
+## 🎯 Diagrama de componentes
+A continuación se muestra el diagrama de componentes del proyecto:
+![Diagrama de componentes](https://github.com/Sebs2807/lab3-arsw/blob/diagramas/Lab_Inmortals-Sync_Java21/img/Inmortals.jpeg)
+
 ## Créditos y licencia
 
 Laboratorio basado en el enunciado histórico del curso (Highlander, Productor/Consumidor, Búsqueda distribuida), modernizado a **Java 21**.  
