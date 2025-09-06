@@ -29,11 +29,8 @@ public final class Immortal implements Runnable {
     }
 
     public String name() { return name; }
-
     public int getHealth() { return health.get(); }
-
     public boolean isAlive() { return health.get() > 0 && running; }
-
     public void stop() { running = false; }
 
     @Override
@@ -57,8 +54,6 @@ public final class Immortal implements Runnable {
                 } else {
                     fight(opponent);
                 }
-
-                Thread.sleep(2);
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
@@ -94,8 +89,10 @@ public final class Immortal implements Runnable {
             synchronized (second) {
                 int h = other.health.get();
                 if (h <= 0) return;
-                other.health.set(Math.max(0, h - damage));
-                health.addAndGet(damage / 2);
+                other.health.set(
+                    Math.max(0, h - damage)
+                    );
+                health.addAndGet(damage);
                 scoreBoard.recordFight();
             }
         }
@@ -118,7 +115,7 @@ public final class Immortal implements Runnable {
             if (h <= 0) return;
         } while (!other.health.compareAndSet(h, Math.max(0, h - damage)));
 
-        health.addAndGet(damage / 2);
+        health.addAndGet(damage);
         scoreBoard.recordFight();
     }
 
