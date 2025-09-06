@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 public final class ControlFrame extends JFrame {
 
@@ -17,7 +18,7 @@ public final class ControlFrame extends JFrame {
   private final JButton resumeBtn = new JButton("Resume");
   private final JButton stopBtn = new JButton("Stop");
 
-  private final JSpinner countSpinner = new JSpinner(new SpinnerNumberModel(8, 2, 5000, 1));
+  private final JSpinner countSpinner = new JSpinner(new SpinnerNumberModel(8, 2, 10000, 1));
   private final JSpinner healthSpinner = new JSpinner(new SpinnerNumberModel(100, 10, 10000, 10));
   private final JSpinner damageSpinner = new JSpinner(new SpinnerNumberModel(10, 1, 1000, 1));
   private final JComboBox<String> fightMode = new JComboBox<>(new String[]{"ordered", "naive"});
@@ -76,6 +77,11 @@ public final class ControlFrame extends JFrame {
   private void onPauseAndCheck(ActionEvent e) {
     if (manager == null) return;
     manager.pause();
+    try {
+        manager.controller().waitUntilAllPaused();
+    } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+    }
     List<Immortal> pop = manager.populationSnapshot();
     long sum = 0;
     StringBuilder sb = new StringBuilder();
@@ -98,11 +104,40 @@ public final class ControlFrame extends JFrame {
   private void onStop(ActionEvent e) { safeStop(); }
 
   private void safeStop() {
-    if (manager != null) {
-      manager.stop();
-      manager = null;
+        if (manager != null) {
+            manager.pause();
+            try {
+                manager.controller().waitUntilAllPaused();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+            manager.stop();
+            ExecutorService exec = getExecutorService(manager);
+            if (exec != null) {
+                exec.shutdown();
+                try {
+                    if (!exec.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                        exec.shutdownNow();
+                    }
+                } catch (InterruptedException ex) {
+                    exec.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            }
+            manager = null;
+            output.append("\nSimulación detenida.\n");
+        }
     }
-  }
+
+    private ExecutorService getExecutorService(ImmortalManager m) {
+        try {
+            var f = ImmortalManager.class.getDeclaredField("exec");
+            f.setAccessible(true);
+            return (ExecutorService) f.get(m);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
   public static void main(String[] args) {
     int count = Integer.getInteger("count", 8);
