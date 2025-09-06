@@ -337,7 +337,7 @@ Como podemos ver a continuación, el proyecto se ejcuta de forma correcta con Do
 
 ## 🎯 Diagrama de componentes
 A continuación se muestra el diagrama de componentes del proyecto:
-![Diagrama de componentes](img/Blackist.jpeg)
+![Diagrama de componentes](https://github.com/Sebs2807/lab3-arsw/blob/diagramas/BlacklistSearchAPI/img/Blacklist.jpeg)
 
 ## 📄 Licencia
 
