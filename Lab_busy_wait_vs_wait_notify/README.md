@@ -16,3 +16,7 @@ mvn -q -DskipTests exec:java -Dexec.mainClass=edu.eci.arsw.pc.PCApp \
 1) **Productor lento / Consumidor rápido** → consumidor debe **esperar sin CPU** cuando no hay elementos.  
 2) **Productor rápido / Consumidor lento** con **límite de stock** → productor debe **esperar sin CPU** cuando la cola esté llena (capacidad pequeña, ej. 4 u 8).  
 3) Visualiza CPU con **jVisualVM** y compara `mode=spin` vs `mode=monitor`.
+
+## 🎯 Diagrama de componentes
+A continuación se muestra el diagrama de componentes del proyecto:
+![Diagrama de componentes](https://github.com/Sebs2807/lab3-arsw/blob/diagramas/Lab_busy_wait_vs_wait_notify/img/Notify.jpeg)
